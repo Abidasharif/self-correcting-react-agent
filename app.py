@@ -1,3 +1,10 @@
+import sys
+from pathlib import Path
+
+# Fix Python path so Streamlit Cloud can find the src module
+sys.path.append(str(Path(__file__).resolve().parent))
+
+# Your existing imports continue below:
 import os
 import json
 import streamlit as st
