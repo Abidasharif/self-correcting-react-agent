@@ -1,0 +1,21 @@
+# Python cache & build files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+# Environment & API Keys
+.env
+.venv/
+env/
+venv/
+
+# IDE files
+.vscode/
+.idea/
+
+# Local logs (keep logs/ empty or track with .gitkeep)
+logs/*.json
+logs/*.html
+!logs/.gitkeep
