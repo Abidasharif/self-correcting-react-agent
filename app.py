@@ -2,7 +2,7 @@ import sys
 import os
 from pathlib import Path
 
-# Ensure the project root directory is at the front of sys.path
+# Set project root (folder containing app.py) as top sys.path entry
 PROJECT_ROOT = Path(__file__).resolve().parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
@@ -10,6 +10,8 @@ if str(PROJECT_ROOT) not in sys.path:
 import json
 import streamlit as st
 from openai import OpenAI
+
+# Direct import after sys.path configuration
 from src.agent import SelfCorrectingAgent
 
 st.set_page_config(
