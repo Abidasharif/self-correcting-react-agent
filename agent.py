@@ -1,21 +1,22 @@
-import json
+import sys
 import os
+import json
 import re
 from pathlib import Path
-import sys
-from typing import Any, Dict, Optional
-
+from typing import Dict, Any, Optional
 from openai import OpenAI
 
-# 1. Fix module resolution path (Project Root)
-sys.path.append(str(Path(__file__).resolve().parent.parent))
+# Guarantee project root is in sys.path even when imported from subdirectories
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
-# 2. Local module imports
-from src.evaluator import FailureMode, RecoveryEngine, StepEvaluator
+# Imports using absolute package resolution
 from src.memory import WorkingMemory
-from src.observability import CLIViewer, HTMLViewerGenerator, ObservabilityLogger
-from src.schemas import AgentStepResponse
 from src.tools import execute_tool_safely
+from src.evaluator import StepEvaluator, RecoveryEngine, FailureMode
+from src.observability import ObservabilityLogger, CLIViewer, HTMLViewerGenerator
+from src.schemas import AgentStepResponse
 
 SYSTEM_PROMPT = """You are an autonomous AI Agent built on the ReAct pattern.
 Achieve the user's goal by calling tools step-by-step.
