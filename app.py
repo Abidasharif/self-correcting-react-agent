@@ -2,23 +2,16 @@ import sys
 import os
 from pathlib import Path
 
-# Force project root directory into sys.path
-APP_DIR = Path(__file__).resolve().parent
-if str(APP_DIR) not in sys.path:
-    sys.path.insert(0, str(APP_DIR))
+# Ensure the project root directory is at the front of sys.path
+PROJECT_ROOT = Path(__file__).resolve().parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
 import json
 import streamlit as st
 from openai import OpenAI
+from src.agent import SelfCorrectingAgent
 
-# Safe import for local module
-try:
-    from src.agent import SelfCorrectingAgent
-except ModuleNotFoundError:
-    sys.path.insert(0, str(APP_DIR / "src"))
-    from agent import SelfCorrectingAgent
-
-# Streamlit Page Config (Must be on its own line)
 st.set_page_config(
     page_title="Self-Correcting ReAct Agent",
     page_icon="🤖",
@@ -31,8 +24,6 @@ st.markdown("Enter a task goal below. The agent will execute step-by-step action
 # Sidebar - Configuration
 with st.sidebar:
     st.header("⚙️ Configuration")
-    
-    # API Key input or fallback to environment variable / Streamlit secrets
     api_key_input = st.text_input("OpenAI API Key (Optional if set in Secrets):", type="password")
     api_key = api_key_input if api_key_input else os.getenv("OPENAI_API_KEY")
     
@@ -52,10 +43,8 @@ if st.button("🚀 Run Agent Task", type="primary"):
     else:
         st.info("Initializing Agent Loop...")
         
-        # Initialize OpenAI Client
         client = OpenAI(api_key=api_key) if api_key else None
         
-        # Initialize Agent
         agent = SelfCorrectingAgent(
             goal=goal,
             max_steps=max_steps,
@@ -68,11 +57,9 @@ if st.button("🚀 Run Agent Task", type="primary"):
             
         st.success("Task Execution Finished!")
         
-        # Display Final Answer
         st.subheader("🎯 Final Result")
         st.write(result)
         
-        # Display Execution Logs
         st.subheader("📊 Structured Execution Trace")
         for log in agent.execution_logs:
             with st.expander(f"Step {log['step']}: {log['type']}"):
