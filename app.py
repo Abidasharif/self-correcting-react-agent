@@ -1,17 +1,24 @@
 import sys
+import os
 from pathlib import Path
 
-# Fix Python path so Streamlit Cloud can find the src module
-sys.path.append(str(Path(__file__).resolve().parent))
+# Force the directory containing app.py and any child modules into Python's sys.path
+APP_DIR = Path(__file__).resolve().parent
+if str(APP_DIR) not in sys.path:
+    sys.path.insert(0, str(APP_DIR))
 
-# Your existing imports continue below:
-import os
+# Now import the rest of your modules
 import json
 import streamlit as st
 from openai import OpenAI
-from src.agent import SelfCorrectingAgent
 
-st.set_page_config(
+# Import core agent
+try:
+    from src.agent import SelfCorrectingAgent
+except ModuleNotFoundError:
+    # Fallback import if src is added directly to path
+    sys.path.insert(0, str(APP_DIR / "src"))
+    from agent import SelfCorrectingAgentst.set_page_config(
     page_title="Self-Correcting ReAct Agent",
     page_icon="🤖",
     layout="wide"
