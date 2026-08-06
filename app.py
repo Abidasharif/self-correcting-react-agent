@@ -2,23 +2,24 @@ import sys
 import os
 from pathlib import Path
 
-# Force the directory containing app.py and any child modules into Python's sys.path
+# Force project root directory into sys.path
 APP_DIR = Path(__file__).resolve().parent
 if str(APP_DIR) not in sys.path:
     sys.path.insert(0, str(APP_DIR))
 
-# Now import the rest of your modules
 import json
 import streamlit as st
 from openai import OpenAI
 
-# Import core agent
+# Safe import for local module
 try:
     from src.agent import SelfCorrectingAgent
 except ModuleNotFoundError:
-    # Fallback import if src is added directly to path
     sys.path.insert(0, str(APP_DIR / "src"))
-    from agent import SelfCorrectingAgentst.set_page_config(
+    from agent import SelfCorrectingAgent
+
+# Streamlit Page Config (Must be on its own line)
+st.set_page_config(
     page_title="Self-Correcting ReAct Agent",
     page_icon="🤖",
     layout="wide"
@@ -27,11 +28,11 @@ except ModuleNotFoundError:
 st.title("🤖 Autonomous Self-Correcting ReAct Agent")
 st.markdown("Enter a task goal below. The agent will execute step-by-step actions, monitor for tool failures or invalid schema outputs, and self-correct automatically.")
 
-# Sidebar - API Key and Settings Configuration
+# Sidebar - Configuration
 with st.sidebar:
     st.header("⚙️ Configuration")
     
-    # Allow user to provide API Key or fall back to Streamlit Secrets / Env Vars
+    # API Key input or fallback to environment variable / Streamlit secrets
     api_key_input = st.text_input("OpenAI API Key (Optional if set in Secrets):", type="password")
     api_key = api_key_input if api_key_input else os.getenv("OPENAI_API_KEY")
     
@@ -61,9 +62,6 @@ if st.button("🚀 Run Agent Task", type="primary"):
             recovery_budget=recovery_budget,
             client=client
         )
-        
-        # Container for streaming traces
-        trace_container = st.container()
         
         with st.spinner("Agent is processing and self-correcting..."):
             result = agent.run()
