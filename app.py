@@ -12,7 +12,7 @@ import streamlit as st
 from openai import OpenAI
 
 # Direct import after sys.path configuration
-from src.agent import SelfCorrectingAgent
+from agent import SelfCorrectingAgent
 
 st.set_page_config(
     page_title="Self-Correcting ReAct Agent",
