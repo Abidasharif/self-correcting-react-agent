@@ -2,25 +2,17 @@ import sys
 import os
 from pathlib import Path
 
-# Fix Streamlit Cloud root path resolution
+# Set project root (folder containing app.py) as top sys.path entry
 ROOT_DIR = Path(__file__).resolve().parent
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
-
-# Ensure src directory is explicitly resolvable
-SRC_DIR = ROOT_DIR / "src"
-if str(SRC_DIR) not in sys.path:
-    sys.path.insert(0, str(SRC_DIR))
 
 import json
 import streamlit as st
 from openai import OpenAI
 
-# Safe import trying package resolution first, then direct module fallback
-try:
-    from src.agent import SelfCorrectingAgent
-except ModuleNotFoundError:
-    from src.agent import SelfCorrectingAgent
+# Import core agent module
+from src.agent import SelfCorrectingAgent
 
 st.set_page_config(
     page_title="Self-Correcting ReAct Agent",
