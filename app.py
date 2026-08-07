@@ -1,18 +1,16 @@
 import sys
-import os
 from pathlib import Path
 
-# Set project root (folder containing app.py) as top sys.path entry
-ROOT_DIR = Path(__file__).resolve().parent
-if str(ROOT_DIR) not in sys.path:
-    sys.path.insert(0, str(ROOT_DIR))
+# Fix Python path so Streamlit Cloud can find the src module
+sys.path.append(str(Path(__file__).resolve().parent))
 
+# Your existing imports continue below:
+import os
 import json
 import streamlit as st
 from openai import OpenAI
-
-# Import core agent module
 from src.agent import SelfCorrectingAgent
+
 
 st.set_page_config(
     page_title="Self-Correcting ReAct Agent",
@@ -23,9 +21,11 @@ st.set_page_config(
 st.title("🤖 Autonomous Self-Correcting ReAct Agent")
 st.markdown("Enter a task goal below. The agent will execute step-by-step actions, monitor for tool failures or invalid schema outputs, and self-correct automatically.")
 
-# Sidebar - Configuration
+# Sidebar - API Key and Settings Configuration
 with st.sidebar:
     st.header("⚙️ Configuration")
+    
+    # Allow user to provide API Key or fall back to Streamlit Secrets / Env Vars
     api_key_input = st.text_input("OpenAI API Key (Optional if set in Secrets):", type="password")
     api_key = api_key_input if api_key_input else os.getenv("OPENAI_API_KEY")
     
@@ -45,8 +45,10 @@ if st.button("🚀 Run Agent Task", type="primary"):
     else:
         st.info("Initializing Agent Loop...")
         
+        # Initialize OpenAI Client
         client = OpenAI(api_key=api_key) if api_key else None
         
+        # Initialize Agent
         agent = SelfCorrectingAgent(
             goal=goal,
             max_steps=max_steps,
@@ -54,14 +56,19 @@ if st.button("🚀 Run Agent Task", type="primary"):
             client=client
         )
         
+        # Container for streaming traces
+        trace_container = st.container()
+        
         with st.spinner("Agent is processing and self-correcting..."):
             result = agent.run()
             
         st.success("Task Execution Finished!")
         
+        # Display Final Answer
         st.subheader("🎯 Final Result")
         st.write(result)
         
+        # Display Execution Logs
         st.subheader("📊 Structured Execution Trace")
         for log in agent.execution_logs:
             with st.expander(f"Step {log['step']}: {log['type']}"):
