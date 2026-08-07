@@ -20,7 +20,7 @@ from openai import OpenAI
 try:
     from src.agent import SelfCorrectingAgent
 except ModuleNotFoundError:
-    from agent import SelfCorrectingAgent
+    from src.agent import SelfCorrectingAgent
 
 st.set_page_config(
     page_title="Self-Correcting ReAct Agent",
