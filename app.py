@@ -1,16 +1,26 @@
 import sys
+import os
 from pathlib import Path
 
-# Fix Python path so Streamlit Cloud can find the src module
-sys.path.append(str(Path(__file__).resolve().parent))
+# Fix Streamlit Cloud root path resolution
+ROOT_DIR = Path(__file__).resolve().parent
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
 
-# Your existing imports continue below:
-import os
+# Ensure src directory is explicitly resolvable
+SRC_DIR = ROOT_DIR / "src"
+if str(SRC_DIR) not in sys.path:
+    sys.path.insert(0, str(SRC_DIR))
+
 import json
 import streamlit as st
 from openai import OpenAI
-from src.agent import SelfCorrectingAgent
 
+# Safe import trying package resolution first, then direct module fallback
+try:
+    from src.agent import SelfCorrectingAgent
+except ModuleNotFoundError:
+    from agent import SelfCorrectingAgent
 
 st.set_page_config(
     page_title="Self-Correcting ReAct Agent",
@@ -21,11 +31,9 @@ st.set_page_config(
 st.title("🤖 Autonomous Self-Correcting ReAct Agent")
 st.markdown("Enter a task goal below. The agent will execute step-by-step actions, monitor for tool failures or invalid schema outputs, and self-correct automatically.")
 
-# Sidebar - API Key and Settings Configuration
+# Sidebar - Configuration
 with st.sidebar:
     st.header("⚙️ Configuration")
-    
-    # Allow user to provide API Key or fall back to Streamlit Secrets / Env Vars
     api_key_input = st.text_input("OpenAI API Key (Optional if set in Secrets):", type="password")
     api_key = api_key_input if api_key_input else os.getenv("OPENAI_API_KEY")
     
@@ -45,10 +53,8 @@ if st.button("🚀 Run Agent Task", type="primary"):
     else:
         st.info("Initializing Agent Loop...")
         
-        # Initialize OpenAI Client
         client = OpenAI(api_key=api_key) if api_key else None
         
-        # Initialize Agent
         agent = SelfCorrectingAgent(
             goal=goal,
             max_steps=max_steps,
@@ -56,19 +62,14 @@ if st.button("🚀 Run Agent Task", type="primary"):
             client=client
         )
         
-        # Container for streaming traces
-        trace_container = st.container()
-        
         with st.spinner("Agent is processing and self-correcting..."):
             result = agent.run()
             
         st.success("Task Execution Finished!")
         
-        # Display Final Answer
         st.subheader("🎯 Final Result")
         st.write(result)
         
-        # Display Execution Logs
         st.subheader("📊 Structured Execution Trace")
         for log in agent.execution_logs:
             with st.expander(f"Step {log['step']}: {log['type']}"):
